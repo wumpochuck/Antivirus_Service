@@ -1,48 +1,34 @@
-#include <Logger.h>
+#include "Logger.h"
+#include <fstream>
+#include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
-class Logger
-{
-    private:
-        /* data */
-        std::ofstream logfile;
-        std::map <LOGTYPE, std::string> logtypeNames{};
-    public:
-        Logger(std::string const& path);
-        ~Logger();
-        void write(const std::string& msg, LOGTYPE type);
-        std::string GetEnumName(LOGTYPE logtype);
-        
-};
-
-Logger::Logger(std::string const& path) {
-    logfile.open(path.c_str(), std::ios_base::app);
-    if (!logfile.is_open()) {
-        throw std::runtime_error("Failed to open log file");
-    }
-    logtypeNames = {
-            { INFO, "INFO" },
-            { WARNING, "WARNING" },
-            { ERROR, "ERROR" }
-    };
-    write("Logger is working...", INFO);
+std::string GetTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
 }
 
-Logger::~Logger() noexcept {
-    if (logfile.is_open()) {
-        logfile.close();
+std::string LogLevelToString(LogLevel level) {
+    switch (level) {
+        case LogLevel::INFO: return "INFO";
+        case LogLevel::ERR: return "ERR";
+        default: return "UNKNOWN";
     }
-};
-
-void Logger::write(const std::string& msg, LOGTYPE type) {
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-    std::string temp = GetEnumName(type);
-    std::string data = std::format("{:02d}.{:02d}.{} {:02d}:{:02d}:{:02d}", st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute, st.wSecond);
-    logfile << std::format("[{}] [{}] {}", GetEnumName(type), data, msg) << std::endl;
-    logfile.flush();
 }
 
-std::string Logger::GetEnumName(LOGTYPE logtype)
-{
-    return logtypeNames[logtype];
+void Log(LogLevel level, const std::string& message) {
+    std::filesystem::create_directories("log");
+    std::ofstream logFile(LOGFILE, std::ios_base::app);
+    if (logFile.is_open()) {
+        logFile << "[" << GetTimestamp() << "] [" << LogLevelToString(level) << "] " << message << std::endl;
+        logFile.close();
+    } else {
+        std::cerr << "Unable to open log file" << std::endl;
+    }
 }

@@ -1,15 +1,15 @@
-#pragma once;
+#ifndef LOGGER_H
+#define LOGGER_H
 
-#include <string.h>
-#include <map>
-#include <fstream>
-#include <format>
-#include <winbase.h>
+#include <string>
 
-#define LOGFILE "D:\Desktop\Antivirus\Antivirus_Service\log\service.log";
-
-enum LOGTYPE{
+enum class LogLevel {
     INFO,
-    WARNING,
-    ERROR,
+    ERR
 };
+
+#define LOGFILE "../log/antivirus_service.log"
+
+void Log(LogLevel level, const std::string& message);
+
+#endif // LOGGER_H
