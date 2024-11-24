@@ -16,6 +16,6 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 VOID WINAPI ServiceCtrlHandler(DWORD);
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
 
-#define SERVICE_NAME  _T("My Sample Service")
+#define SERVICE_NAME  _T("AntivirusService")
 
 // TODO: установите здесь ссылки на дополнительные заголовки, требующиеся для программы.
