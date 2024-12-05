@@ -4,6 +4,10 @@
 #define LOGGER_H
 
 #include <string>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <cstdio>
 
 enum class LogLevel {
     INFO,
@@ -13,5 +17,7 @@ enum class LogLevel {
 #define LOGFILE "C:\\antivirus_service.log"
 
 void Log(LogLevel level, const std::string& message);
+std::string LogLevelToString(LogLevel level);
+std::string GetTimestamp();
 
 #endif // LOGGER_H

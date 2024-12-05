@@ -5,3 +5,4 @@ Antivirus_Service/.vscode
 Antivirus_Service/.DS_Store
 Antivirus_Service/include/
 Antivirus_Service/x64/
+Antivirus_Service/curl-8.11.0/
