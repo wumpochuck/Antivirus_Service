@@ -1,5 +1,0 @@
-﻿  Antivirus_Service.cpp
-D:\Github\Antivirus_Service\Antivirus_Service\Antivirus_Service.cpp(270,71): warning C4267: аргумент: преобразование из "size_t" в "DWORD"; возможна потеря данных
-Antivirus_Service.obj : error LNK2019: ссылка на неразрешенный внешний символ curl_easy_init в функции "class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl SendPostRequest(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?SendPostRequest@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBV12@0@Z).
-D:\Github\Antivirus_Service\Antivirus_Service\curl-8.11.0\builds\libcurl-vc-x86-release-static-ipv6-sspi-schannel\lib\libcurl_a.lib : warning LNK4272: тип компьютера библиотеки "x86" конфликтует с типом целевого компьютера "x64"
-D:\Github\Antivirus_Service\Antivirus_Service\x64\Debug\Antivirus_Service.exe : fatal error LNK1120: неразрешенных внешних элементов: 1
