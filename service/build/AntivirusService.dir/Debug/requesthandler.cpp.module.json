@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "AntivirusService.dir\\Debug\\RequestHandler.obj",
+            "outputs": [
+                "C:\\Antivirus_Service\\service\\build\\AntivirusService.dir\\Debug\\vc143.pdb",
+                "AntivirusService.dir\\Debug\\"
+            ],
+            "requires": []
+        }
+    ]
+}

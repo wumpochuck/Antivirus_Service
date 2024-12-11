@@ -1,0 +1,3 @@
+C:/Antivirus_Service/service/build/CMakeFiles/AntivirusService.dir
+C:/Antivirus_Service/service/build/CMakeFiles/ALL_BUILD.dir
+C:/Antivirus_Service/service/build/CMakeFiles/ZERO_CHECK.dir

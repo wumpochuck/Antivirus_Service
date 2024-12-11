@@ -1,49 +1,43 @@
-# Antivirus Service Project
+# AntivirusService
 
-This project is built using the CMake utility.
+## Описание директорий
 
-## Requirements:
-- [CMake](https://cmake.org/)
-- Make (install via Chocolatey: `choco install make`)
-- Mingw (install via Chocolatey: `choco install mingw`)
+- **service/**
+  - **build/**: Директория для сборки проекта.
+  - **CMakeLists.txt**: Основной файл конфигурации CMake для проекта.
+  - **lib/**: Директория для внешних библиотек.
+    - **curl-8.11.0/**: Директория с библиотекой cURL.
+  - **src/**: Директория с исходными файлами проекта.
+    - **Antivirus_Service.cpp**: Основной файл исходного кода для сервиса антивируса.
+    - **Antivirus_Service.h**: Заголовочный файл для сервиса антивируса.
+    - **Logger.cpp**: Файл исходного кода для логирования.
+    - **Logger.h**: Заголовочный файл для логирования.
+    - **RequestHandler.cpp**: Файл исходного кода для обработки запросов.
+    - **RequestHandler.h**: Заголовочный файл для обработки запросов.
 
-*Note: Chocolatey is a package manager for Windows. More information can be found [here](https://chocolatey.org/).*
+## Инструкция по сборке
 
-## Build Instructions:
-
-1. Navigate to the `Antivirus_Service/build` directory. The following steps should be executed in this directory.
-2. Run the following command in the terminal:
-   ```sh
-   cmake .. -G "MinGW Makefiles"
-   ```
-3. After the project configuration is complete, run the following command:
+1. Убедитесь, что у вас установлен CMake и Visual Studio.
+2. Откройте командную строку и перейдите в директорию `service`:
+    ```sh
+    cd service
+    ```
+3. Создайте директорию для сборки и перейдите в нее:
+    ```sh
+    mkdir build
+    cd build
+    ```
+4. Запустите CMake для генерации файлов сборки:
+    ```sh
+    cmake -A Win32 ../
+    ```
+5. Соберите проект с помощью Cmake:
    ```sh
    cmake --build .
    ```
-4. Upon completion, the executable file __Antivirus_Service/build/Antivirus_Service.exe__ will be generated. This is the service executable.
+Готовый проект будет собран в директории `build`
 
-## Service Management Instructions:
 
-### Adding the Service
-To add the compiled service to the system, run the following command in the terminal:
-```sh
-sc create AntivirusService binPath= "path\to\Antivirus_Service.exe"
-```
+## Настройки:
 
-### Starting the Service
-To start the service, run the following command:
-```sh
-sc start AntivirusService
-```
-
-### Stopping the Service
-To stop the service, run the following command:
-```sh
-sc stop AntivirusService
-```
-
-### Deleting the Service
-To delete the service from the system, run the following command:
-```sh
-sc delete AntivirusService
-```
+- В файле **RequestHandler.h** требуется указать IP-адрес и PORT сервера
