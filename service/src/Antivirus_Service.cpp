@@ -2,18 +2,21 @@
 #include "Logger.h"
 #include "RequestHandler.h"
 
+// Main entry point for the service
 int _tmain(int argc, TCHAR* argv[])
 {
     Log(LogLevel::INFO, "AntivirusService.cpp: Main: Entry");
 
     TCHAR SERVICENAME[] = SERVICE_NAME;
 
+    // Service table entry
     SERVICE_TABLE_ENTRY ServiceTable[] =
     {
         {SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
         {NULL, NULL}
     };
 
+    // Start the service control dispatcher
     if (StartServiceCtrlDispatcher(ServiceTable) == FALSE)
     {
         Log(LogLevel::ERR, "AntivirusService.cpp: Main: StartServiceCtrlDispatcher returned error");
@@ -23,85 +26,50 @@ int _tmain(int argc, TCHAR* argv[])
     Log(LogLevel::INFO, "AntivirusService.cpp: Main: Exit");
     return 0;
 }
-/*
-// Повышения уровня доступа для запуска JavaFX приложения
-bool EnablePrivilege(LPCWSTR privilegeName) {
-    HANDLE token;
-    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) {
-        std::wcerr << L"Failed to open process token. Error: " << GetLastError() << std::endl;
-        return false;
-    }
 
-    TOKEN_PRIVILEGES tp;
-    LUID luid;
-    if (!LookupPrivilegeValueW(NULL, privilegeName, &luid)) {
-        DWORD error = GetLastError();
-        std::wcerr << L"Failed to lookup privilege value. Error: " << error << std::endl;
-        Log(LogLevel::ERR, "Failed to lookup privilege value. Error: " + std::to_string(error));
-        CloseHandle(token);
-        return false;
-    }
+// Function to run JavaFX application
+void runJavaFXApplication()
+{
+    HANDLE hToken = NULL;
+    DWORD dwSessionId = WTSGetActiveConsoleSessionId();
 
-    tp.PrivilegeCount = 1;
-    tp.Privileges[0].Luid = luid;
-    tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-    if (!AdjustTokenPrivileges(token, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL)) {
-        DWORD error = GetLastError();
-        std::wcerr << L"Failed to adjust token privileges. Error: " << error << std::endl;
-        Log(LogLevel::ERR, "Failed to adjust token privileges. Error: " + std::to_string(error));
-        CloseHandle(token);
-        return false;
-    }
-
-    CloseHandle(token);
-    return GetLastError() == ERROR_SUCCESS;
-}
-
-// Запуск JavaFX приложения
-void StartJavaFXClient() {
-    if (!EnablePrivilege((LPCWSTR)SE_TCB_NAME)) {
-        Log(LogLevel::ERR, "Failed to enable SE_TCB_NAME privilege");
+    // Get the user session token
+    if (!WTSQueryUserToken(dwSessionId, &hToken))
+    {
+        Log(LogLevel::ERR, "AntivirusService.cpp: runJavaFXApplication: WTSQueryUserToken failed: " + std::to_string(GetLastError()));
         return;
     }
 
-    DWORD sessionId = WTSGetActiveConsoleSessionId();
-    HANDLE token = NULL;
+    STARTUPINFO si = { sizeof(STARTUPINFO) };
+    PROCESS_INFORMATION pi;
 
-    if (WTSQueryUserToken(sessionId, &token)) {
-        STARTUPINFOW si = { sizeof(STARTUPINFOW) };
-        si.lpDesktop = const_cast<LPWSTR>(L"winsta0\\default");
-        PROCESS_INFORMATION pi = {};
-
-        std::wstring command = L"java --module-path \"" + std::wstring(PATH_TO_JDK_LIB) + L"\" --add-modules javafx.controls,javafx.fxml -jar \"" + std::wstring(PATH_TO_CLIENT) + L"\"";
-
-        if (CreateProcessAsUserW(
-            token,
-            NULL,
-            &command[0],
-            NULL,
-            NULL,
-            FALSE,
-            CREATE_NO_WINDOW,
-            NULL,
-            NULL,
-            &si,
-            &pi)) {
-            Log(LogLevel::INFO, "JavaFX client started");
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-        }
-        else {
-            Log(LogLevel::ERR, "Failed to start JavaFX client");
-        }
-
-        CloseHandle(token);
+    // Create process in user session
+    if (!CreateProcessAsUser(
+            hToken,                // User token
+            NULL,                  // Module name (use command line)
+            (LPSTR)PATH_TO_CLIENT, // Command line
+            NULL,                  // Process handle not inheritable
+            NULL,                  // Thread handle not inheritable
+            FALSE,                 // Set handle inheritance to FALSE
+            CREATE_NEW_CONSOLE,    // Create new console window
+            NULL,                  // Use parent's environment block
+            WORKING_DIRECTORY,     // Set working directory
+            &si,                   // Pointer to STARTUPINFO structure
+            &pi)                   // Pointer to PROCESS_INFORMATION structure
+        )
+    {
+        Log(LogLevel::ERR, "AntivirusService.cpp: runJavaFXApplication: CreateProcessAsUser failed: " + std::to_string(GetLastError()));
+        CloseHandle(hToken);
+        return;
     }
-    else {
-        Log(LogLevel::ERR, "Failed to query user token");
-    }
+
+    // Close process and thread handles
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+    CloseHandle(hToken);
 }
-*/
+
+// Service main function
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 {
     DWORD Status = E_FAIL;
@@ -131,12 +99,10 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
         Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
     }
 
-    /*
-     * Perform tasks necessary to start the service here
-     */
+    // Perform tasks necessary to start the service here
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Performing Service Start Operations");
 
-    // Create stop event to wait on later.
+    // Create stop event to wait on later
     g_ServiceStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (g_ServiceStopEvent == NULL)
     {
@@ -176,10 +142,7 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Worker Thread Stop Event signaled");
 
-
-    /*
-     * Perform any cleanup tasks
-     */
+    // Perform any cleanup tasks
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Performing Cleanup Operations");
 
     CloseHandle(g_ServiceStopEvent);
@@ -194,11 +157,11 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
         Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
     }
 
-
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Exit");
     return;
 }
 
+// Service control handler function
 VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
 {
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceCtrlHandler: Entry");
@@ -212,10 +175,7 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
         if (g_ServiceStatus.dwCurrentState != SERVICE_RUNNING)
             break;
 
-        /*
-         * Perform tasks necessary to stop the service here
-         */
-
+        // Perform tasks necessary to stop the service here
         g_ServiceStatus.dwControlsAccepted = 0;
         g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
         g_ServiceStatus.dwWin32ExitCode = 0;
@@ -238,14 +198,37 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceCtrlHandler: Exit");
 }
 
+// Worker thread function
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
 {
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Entry");
 
-    // StartJavaFXClient(); // Запуск javafx приложения
+    runJavaFXApplication(); // Start JavaFX application
 
     while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
     {
+        SECURITY_ATTRIBUTES sa;
+        SECURITY_DESCRIPTOR sd;
+
+        // Initialize an empty security descriptor
+        if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
+        {
+            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: InitializeSecurityDescriptor failed: " + std::to_string(GetLastError()));
+            return 1;
+        }
+
+        // Set all users to have full access
+        if (!SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE))
+        {
+            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: SetSecurityDescriptorDacl failed: " + std::to_string(GetLastError()));
+            return 1;
+        }
+
+        sa.nLength = sizeof(sa);
+        sa.lpSecurityDescriptor = &sd;
+        sa.bInheritHandle = FALSE;
+
+        // Create named pipe
         HANDLE hPipe = CreateNamedPipe(
             PIPE_NAME,
             PIPE_ACCESS_DUPLEX,
@@ -254,20 +237,21 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
             512,
             512,
             0,
-            NULL);
+            &sa); // Use SECURITY_ATTRIBUTES
 
         if (hPipe == INVALID_HANDLE_VALUE)
         {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: CreateNamedPipe failed");
+            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: CreateNamedPipe failed: " + std::to_string(GetLastError()));
             return 1;
         }
 
         Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: NamedPipe waiting for data");
 
+        // Wait for client to connect
         BOOL connected = ConnectNamedPipe(hPipe, NULL) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
         if (!connected)
         {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: ConnectNamedPipe failed");
+            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: ConnectNamedPipe failed: " + std::to_string(GetLastError()));
             CloseHandle(hPipe);
             continue;
         }
@@ -277,6 +261,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
         char buffer[512];
         DWORD bytesRead;
 
+        // Read data from pipe
         BOOL result = ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL);
         if (result && bytesRead != 0)
         {
@@ -299,6 +284,7 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
             }
         }
 
+        // Close pipe handle
         CloseHandle(hPipe);
         Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Client end data transfer to pipe");
     }

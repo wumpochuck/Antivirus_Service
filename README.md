@@ -40,4 +40,7 @@
 
 ## Настройки:
 
-- В файле **RequestHandler.h** требуется указать IP-адрес и PORT сервера
+- В файле **RequestHandler.h** и **Antivirus_Service.h** требуется указать:
+1) IP-адрес и PORT сервера
+2) PATH_TO_CLIENT
+3) WORKING_DIRECTORY

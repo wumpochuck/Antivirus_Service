@@ -19,12 +19,13 @@ HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
 VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
 VOID WINAPI ServiceCtrlHandler(DWORD);
 DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
-void StartJavaFXClient();
+void runJavaFXApplication();
 
 #define SERVICE_NAME  _T("AntivirusService")
 #define PIPE_NAME _T("\\\\.\\pipe\\AntivirusServicePipe")
-#define PATH_TO_CLIENT L"D:\\Github\\Antivirus_Client\\antivirus\\target\\antivirus-1.0-SNAPSHOT.jar"
-#define PATH_TO_JDK_LIB L"C:\\javafx-sdk-23.0.1\\lib"
+#define PATH_TO_CLIENT "" // C:/AntivirusClient/target/app/bin/app.bat
+#define WORKING_DIRECTORY "" // C:/AntivirusClient/target
+// #define PATH_TO_JDK_LIB L"C:\\javafx-sdk-23.0.1\\lib"
 
 // IMPORTANT:
 /*
