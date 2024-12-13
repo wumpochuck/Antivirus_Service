@@ -5,6 +5,7 @@
 #include <curl/curl.h>
 
 // Const variables for storing JWT and other
+// TODO: refactor to class instead global variables
 
 std::string global_JWT = "";
 std::string global_LOGIN = "";
@@ -200,13 +201,13 @@ void HandleRequest(const std::string& request, HANDLE hPipe)
         SendLicenseInfoRequest(data, hPipe);
 
     }
-    else if (command == "jwtcheck"){ // return login if user is auntheticated
+    else if (command == "jwtcheck"){ // return login if user is already auntheticated
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT request");
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT: " + global_JWT);
         std::string isHaveJWT = (global_JWT != "") ? global_LOGIN : "false";
         WriteFile(hPipe, isHaveJWT.c_str(), isHaveJWT.length(), NULL, NULL);
     }
-    else if (command == "licensecheck"){
+    else if (command == "licensecheck"){ // return license code if user bought it
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License check request");
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License code: " + global_LICENSE_CODE);
         WriteFile(hPipe, global_LICENSE_CODE.c_str(), global_LICENSE_CODE.length(), NULL, NULL);
@@ -219,6 +220,8 @@ void HandleRequest(const std::string& request, HANDLE hPipe)
         global_LICENSE_CODE = "";
         WriteFile(hPipe, "JWT cleared", 11, NULL, NULL);
     }
+    // TODO: jwtupdate (1hour period if user autheticated)
+    // TODO: license expiration && update
 
     else
     {

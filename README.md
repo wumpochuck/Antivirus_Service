@@ -44,3 +44,23 @@
 1) IP-адрес и PORT сервера
 2) PATH_TO_CLIENT
 3) WORKING_DIRECTORY
+
+
+## Запуск:
+- Установить службу: 
+```powershell
+sc create AntivirusService binPath= "path/to/AntivirusService.exe" start= auto
+
+// "start= auto" нужен для того чтобы служба запускалась при входе в систему
+```
+
+- Запустить службу:
+```powershell
+sc start AntivirusService
+```
+
+- Удалить службу:
+Остановить через диспетчер задач, затем:
+```powershell
+sc delete AntivirusService
+```
