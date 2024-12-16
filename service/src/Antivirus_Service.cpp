@@ -1,25 +1,23 @@
 ﻿#include "Antivirus_Service.h"
+
 #include "Logger.h"
 #include "RequestHandler.h"
 
 // Main entry point for the service
-int _tmain(int argc, TCHAR* argv[])
-{
+int _tmain(int argc, TCHAR* argv[]) {
     Log(LogLevel::INFO, "AntivirusService.cpp: Main: Entry");
 
     TCHAR SERVICENAME[] = SERVICE_NAME;
 
     // Service table entry
-    SERVICE_TABLE_ENTRY ServiceTable[] =
-    {
-        {SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
-        {NULL, NULL}
-    };
+    SERVICE_TABLE_ENTRY ServiceTable[] = {
+        {SERVICENAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain}, {NULL, NULL}};
 
     // Start the service control dispatcher
-    if (StartServiceCtrlDispatcher(ServiceTable) == FALSE)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: Main: StartServiceCtrlDispatcher returned error");
+    if (StartServiceCtrlDispatcher(ServiceTable) == FALSE) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: Main: StartServiceCtrlDispatcher returned "
+            "error");
         return GetLastError();
     }
 
@@ -28,37 +26,39 @@ int _tmain(int argc, TCHAR* argv[])
 }
 
 // Function to run JavaFX application
-void runJavaFXApplication()
-{
+void runJavaFXApplication() {
     HANDLE hToken = NULL;
     DWORD dwSessionId = WTSGetActiveConsoleSessionId();
 
     // Get the user session token
-    if (!WTSQueryUserToken(dwSessionId, &hToken))
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: runJavaFXApplication: WTSQueryUserToken failed: " + std::to_string(GetLastError()));
+    if (!WTSQueryUserToken(dwSessionId, &hToken)) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: runJavaFXApplication: WTSQueryUserToken "
+            "failed: " +
+                std::to_string(GetLastError()));
         return;
     }
 
-    STARTUPINFO si = { sizeof(STARTUPINFO) };
+    STARTUPINFO si = {sizeof(STARTUPINFO)};
     PROCESS_INFORMATION pi;
 
     // Create process in user session
-    if (!CreateProcessAsUser(
-            hToken,                // User token
-            NULL,                  // Module name (use command line)
-            (LPSTR)PATH_TO_CLIENT, // Command line
-            NULL,                  // Process handle not inheritable
-            NULL,                  // Thread handle not inheritable
-            FALSE,                 // Set handle inheritance to FALSE
-            CREATE_NEW_CONSOLE,    // Create new console window
-            NULL,                  // Use parent's environment block
-            WORKING_DIRECTORY,     // Set working directory
-            &si,                   // Pointer to STARTUPINFO structure
-            &pi)                   // Pointer to PROCESS_INFORMATION structure
-        )
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: runJavaFXApplication: CreateProcessAsUser failed: " + std::to_string(GetLastError()));
+    if (!CreateProcessAsUser(hToken,  // User token
+                             NULL,    // Module name (use command line)
+                             (LPSTR)PATH_TO_CLIENT,  // Command line
+                             NULL,   // Process handle not inheritable
+                             NULL,   // Thread handle not inheritable
+                             FALSE,  // Set handle inheritance to FALSE
+                             CREATE_NO_WINDOW,  // Create new console window
+                             NULL,  // Use parent's environment block
+                             WORKING_DIRECTORY,  // Set working directory
+                             &si,  // Pointer to STARTUPINFO structure
+                             &pi)  // Pointer to PROCESS_INFORMATION structure
+    ) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: runJavaFXApplication: CreateProcessAsUser "
+            "failed: " +
+                std::to_string(GetLastError()));
         CloseHandle(hToken);
         return;
     }
@@ -70,17 +70,18 @@ void runJavaFXApplication()
 }
 
 // Service main function
-VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
-{
+VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv) {
     DWORD Status = E_FAIL;
 
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Entry");
 
-    g_StatusHandle = RegisterServiceCtrlHandler(SERVICE_NAME, ServiceCtrlHandler);
+    g_StatusHandle =
+        RegisterServiceCtrlHandler(SERVICE_NAME, ServiceCtrlHandler);
 
-    if (g_StatusHandle == NULL)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: RegisterServiceCtrlHandler returned error");
+    if (g_StatusHandle == NULL) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: ServiceMain: RegisterServiceCtrlHandler "
+            "returned error");
         Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Exit");
         return;
     }
@@ -94,28 +95,33 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
     g_ServiceStatus.dwServiceSpecificExitCode = 0;
     g_ServiceStatus.dwCheckPoint = 0;
 
-    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
+    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: ServiceMain: SetServiceStatus returned "
+            "error");
     }
 
     // Perform tasks necessary to start the service here
-    Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Performing Service Start Operations");
+    Log(LogLevel::INFO,
+        "AntivirusService.cpp: ServiceMain: Performing Service Start "
+        "Operations");
 
     // Create stop event to wait on later
     g_ServiceStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-    if (g_ServiceStopEvent == NULL)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: CreateEvent(g_ServiceStopEvent) returned error");
+    if (g_ServiceStopEvent == NULL) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: ServiceMain: "
+            "CreateEvent(g_ServiceStopEvent) returned error");
 
         g_ServiceStatus.dwControlsAccepted = 0;
         g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
         g_ServiceStatus.dwWin32ExitCode = GetLastError();
         g_ServiceStatus.dwCheckPoint = 1;
 
-        if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
+        if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
+            Log(LogLevel::ERR,
+                "AntivirusService.cpp: ServiceMain: SetServiceStatus returned "
+                "error");
         }
         Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Exit");
         return;
@@ -127,23 +133,29 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
     g_ServiceStatus.dwWin32ExitCode = 0;
     g_ServiceStatus.dwCheckPoint = 0;
 
-    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
+    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: ServiceMain: SetServiceStatus returned "
+            "error");
     }
 
     // Start the thread that will perform the main task of the service
     HANDLE hThread = CreateThread(NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
 
-    Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Waiting for Worker Thread to complete");
+    Log(LogLevel::INFO,
+        "AntivirusService.cpp: ServiceMain: Waiting for Worker Thread to "
+        "complete");
 
-    // Wait until our worker thread exits effectively signaling that the service needs to stop
+    // Wait until our worker thread exits effectively signaling that the service
+    // needs to stop
     WaitForSingleObject(hThread, INFINITE);
 
-    Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Worker Thread Stop Event signaled");
+    Log(LogLevel::INFO,
+        "AntivirusService.cpp: ServiceMain: Worker Thread Stop Event signaled");
 
     // Perform any cleanup tasks
-    Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Performing Cleanup Operations");
+    Log(LogLevel::INFO,
+        "AntivirusService.cpp: ServiceMain: Performing Cleanup Operations");
 
     CloseHandle(g_ServiceStopEvent);
 
@@ -152,9 +164,10 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
     g_ServiceStatus.dwWin32ExitCode = 0;
     g_ServiceStatus.dwCheckPoint = 3;
 
-    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-    {
-        Log(LogLevel::ERR, "AntivirusService.cpp: ServiceMain: SetServiceStatus returned error");
+    if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
+        Log(LogLevel::ERR,
+            "AntivirusService.cpp: ServiceMain: SetServiceStatus returned "
+            "error");
     }
 
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceMain: Exit");
@@ -162,65 +175,67 @@ VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
 }
 
 // Service control handler function
-VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
-{
+VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode) {
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceCtrlHandler: Entry");
 
-    switch (CtrlCode)
-    {
-    case SERVICE_CONTROL_STOP:
+    switch (CtrlCode) {
+        case SERVICE_CONTROL_STOP:
 
-        Log(LogLevel::INFO, "AntivirusService.cpp: ServiceCtrlHandler: SERVICE_CONTROL_STOP Request");
+            Log(LogLevel::INFO,
+                "AntivirusService.cpp: ServiceCtrlHandler: "
+                "SERVICE_CONTROL_STOP Request");
 
-        if (g_ServiceStatus.dwCurrentState != SERVICE_RUNNING)
+            if (g_ServiceStatus.dwCurrentState != SERVICE_RUNNING) break;
+
+            // Perform tasks necessary to stop the service here
+            g_ServiceStatus.dwControlsAccepted = 0;
+            g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+            g_ServiceStatus.dwWin32ExitCode = 0;
+            g_ServiceStatus.dwCheckPoint = 4;
+
+            if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE) {
+                Log(LogLevel::ERR,
+                    "AntivirusService.cpp: ServiceCtrlHandler: "
+                    "SetServiceStatus returned error");
+            }
+
+            // This will signal the worker thread to start shutting down
+            SetEvent(g_ServiceStopEvent);
+
             break;
 
-        // Perform tasks necessary to stop the service here
-        g_ServiceStatus.dwControlsAccepted = 0;
-        g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
-        g_ServiceStatus.dwWin32ExitCode = 0;
-        g_ServiceStatus.dwCheckPoint = 4;
-
-        if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceCtrlHandler: SetServiceStatus returned error");
-        }
-
-        // This will signal the worker thread to start shutting down
-        SetEvent(g_ServiceStopEvent);
-
-        break;
-
-    default:
-        break;
+        default:
+            break;
     }
 
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceCtrlHandler: Exit");
 }
 
 // Worker thread function
-DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
-{
+DWORD WINAPI ServiceWorkerThread(LPVOID lpParam) {
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Entry");
 
-    runJavaFXApplication(); // Start JavaFX application
+    runJavaFXApplication();  // Start JavaFX application
 
-    while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0)
-    {
+    while (WaitForSingleObject(g_ServiceStopEvent, 0) != WAIT_OBJECT_0) {
         SECURITY_ATTRIBUTES sa;
         SECURITY_DESCRIPTOR sd;
 
         // Initialize an empty security descriptor
-        if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION))
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: InitializeSecurityDescriptor failed: " + std::to_string(GetLastError()));
+        if (!InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION)) {
+            Log(LogLevel::ERR,
+                "AntivirusService.cpp: ServiceWorkerThread: "
+                "InitializeSecurityDescriptor failed: " +
+                    std::to_string(GetLastError()));
             return 1;
         }
 
         // Set all users to have full access
-        if (!SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE))
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: SetSecurityDescriptorDacl failed: " + std::to_string(GetLastError()));
+        if (!SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE)) {
+            Log(LogLevel::ERR,
+                "AntivirusService.cpp: ServiceWorkerThread: "
+                "SetSecurityDescriptorDacl failed: " +
+                    std::to_string(GetLastError()));
             return 1;
         }
 
@@ -230,63 +245,72 @@ DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
 
         // Create named pipe
         HANDLE hPipe = CreateNamedPipe(
-            PIPE_NAME,
-            PIPE_ACCESS_DUPLEX,
+            PIPE_NAME, PIPE_ACCESS_DUPLEX,
             PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            PIPE_UNLIMITED_INSTANCES,
-            512,
-            512,
-            0,
-            &sa); // Use SECURITY_ATTRIBUTES
+            PIPE_UNLIMITED_INSTANCES, 512, 512, 0,
+            &sa);  // Use SECURITY_ATTRIBUTES
 
-        if (hPipe == INVALID_HANDLE_VALUE)
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: CreateNamedPipe failed: " + std::to_string(GetLastError()));
+        if (hPipe == INVALID_HANDLE_VALUE) {
+            Log(LogLevel::ERR,
+                "AntivirusService.cpp: ServiceWorkerThread: CreateNamedPipe "
+                "failed: " +
+                    std::to_string(GetLastError()));
             return 1;
         }
 
-        Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: NamedPipe waiting for data");
+        Log(LogLevel::INFO,
+            "AntivirusService.cpp: ServiceWorkerThread: NamedPipe waiting for "
+            "data");
 
         // Wait for client to connect
-        BOOL connected = ConnectNamedPipe(hPipe, NULL) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-        if (!connected)
-        {
-            Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: ConnectNamedPipe failed: " + std::to_string(GetLastError()));
+        BOOL connected = ConnectNamedPipe(hPipe, NULL)
+                             ? TRUE
+                             : (GetLastError() == ERROR_PIPE_CONNECTED);
+        if (!connected) {
+            Log(LogLevel::ERR,
+                "AntivirusService.cpp: ServiceWorkerThread: ConnectNamedPipe "
+                "failed: " +
+                    std::to_string(GetLastError()));
             CloseHandle(hPipe);
             continue;
         }
 
-        Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Client start data transfer to pipe");
+        Log(LogLevel::INFO,
+            "AntivirusService.cpp: ServiceWorkerThread: Client start data "
+            "transfer to pipe");
 
         char buffer[512];
         DWORD bytesRead;
 
         // Read data from pipe
-        BOOL result = ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL);
-        if (result && bytesRead != 0)
-        {
+        BOOL result =
+            ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL);
+        if (result && bytesRead != 0) {
             buffer[bytesRead] = '\0';
             Log(LogLevel::INFO, buffer);
 
             std::string request(buffer);
-            HandleRequest(request, hPipe); // Send data to server via RequestHandler.cpp
-        }
-        else
-        {
+            HandleRequest(request,
+                          hPipe);  // Send data to server via RequestHandler.cpp
+        } else {
             DWORD error = GetLastError();
-            if (error == ERROR_BROKEN_PIPE)
-            {
-                Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Client end data transfer to pipe or pipe has broken");
-            }
-            else
-            {
-                Log(LogLevel::ERR, "AntivirusService.cpp: ServiceWorkerThread: ReadFile failed with error " + std::to_string(error));
+            if (error == ERROR_BROKEN_PIPE) {
+                Log(LogLevel::INFO,
+                    "AntivirusService.cpp: ServiceWorkerThread: Client end "
+                    "data transfer to pipe or pipe has broken");
+            } else {
+                Log(LogLevel::ERR,
+                    "AntivirusService.cpp: ServiceWorkerThread: ReadFile "
+                    "failed with error " +
+                        std::to_string(error));
             }
         }
 
         // Close pipe handle
         CloseHandle(hPipe);
-        Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Client end data transfer to pipe");
+        Log(LogLevel::INFO,
+            "AntivirusService.cpp: ServiceWorkerThread: Client end data "
+            "transfer to pipe");
     }
 
     Log(LogLevel::INFO, "AntivirusService.cpp: ServiceWorkerThread: Exit");

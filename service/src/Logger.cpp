@@ -1,7 +1,7 @@
 #include "Logger.h"
-#include <iostream>
-#include <filesystem>
 
+#include <filesystem>
+#include <iostream>
 
 #include "Logger.h"
 
@@ -17,9 +17,12 @@ std::string GetTimestamp() {
 
 std::string LogLevelToString(LogLevel level) {
     switch (level) {
-    case LogLevel::INFO: return "INFO";
-    case LogLevel::ERR:  return " ERR";
-    default: return "UNKNOWN";
+        case LogLevel::INFO:
+            return "INFO";
+        case LogLevel::ERR:
+            return " ERR";
+        default:
+            return "UNKNOWN";
     }
 }
 
@@ -33,8 +36,7 @@ void Log(LogLevel level, const std::string& message) {
         FILE* createFile;
         if (fopen_s(&createFile, logFilePath.c_str(), "w") == 0) {
             fclose(createFile);
-        }
-        else {
+        } else {
             std::cerr << "Unable to create log file" << std::endl;
             return;
         }
@@ -43,12 +45,11 @@ void Log(LogLevel level, const std::string& message) {
     // Открываем файл для записи
     FILE* logFile;
     if (fopen_s(&logFile, logFilePath.c_str(), "a") == 0) {
-        std::string logEntry = "[" + GetTimestamp() + "] [" + LogLevelToString(level) + "] " + message + "\n";
+        std::string logEntry = "[" + GetTimestamp() + "] [" +
+                               LogLevelToString(level) + "] " + message + "\n";
         fwrite(logEntry.c_str(), sizeof(char), logEntry.size(), logFile);
         fclose(logFile);
-    }
-    else {
+    } else {
         std::cerr << "Unable to open log file" << std::endl;
     }
 }
-
