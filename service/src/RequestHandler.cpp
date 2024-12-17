@@ -6,28 +6,30 @@
 
 #include "Logger.h"
 
+using namespace std;
+
 // Const variables for storing JWT and other
 // TODO: refactor to class instead global variables
 
-std::string global_JWT = "";
-std::string global_LOGIN = "";
-std::string global_TICKET = "";
-// std::string global_LICENSE_CODE = "";
+string global_JWT = "";
+string global_LOGIN = "";
+string global_TICKET = "";
+// string global_LICENSE_CODE = "";
 
 // Methods
 
-void SendRegisterRequest(const std::string& data, HANDLE hPipe) {
+void SendRegisterRequest(const string& data, HANDLE hPipe) {
     size_t loginEnd = data.find(':');
     size_t passwordEnd = data.find(':', loginEnd + 1);
     size_t emailEnd = data.find(':', passwordEnd + 1);
 
-    if (loginEnd != std::string::npos && passwordEnd != std::string::npos &&
-        emailEnd == std::string::npos) {
-        std::string login = data.substr(0, loginEnd);
-        std::string password =
+    if (loginEnd != string::npos && passwordEnd != string::npos &&
+        emailEnd == string::npos) {
+        string login = data.substr(0, loginEnd);
+        string password =
             data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
-        std::string email = data.substr(passwordEnd + 1);
-        std::string json = "{\"login\":\"" + login + "\",\"password\":\"" +
+        string email = data.substr(passwordEnd + 1);
+        string json = "{\"login\":\"" + login + "\",\"password\":\"" +
                            password + "\",\"email\":\"" + email + "\"}";
 
         Log(LogLevel::INFO,
@@ -36,14 +38,14 @@ void SendRegisterRequest(const std::string& data, HANDLE hPipe) {
             "RequestHandler.cpp: SendRegisterRequest: Sending request to "
             "server");
 
-        std::string response =
+        string response =
             SendPostRequest("http://" SERVER_IP ":8080/auth/register", json);
 
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLoginRequest: Response: " + response);
 
         // JWT cutting
-        if (response.find("JWT{Bearer ") != std::string::npos) {
+        if (response.find("JWT{Bearer ") != string::npos) {
             size_t jwtStart = response.find("JWT{Bearer ") + 11;
             size_t jwtEnd = response.find("}", jwtStart);
             global_JWT = response.substr(jwtStart, jwtEnd - jwtStart);
@@ -64,15 +66,15 @@ void SendRegisterRequest(const std::string& data, HANDLE hPipe) {
     }
 }
 
-void SendLoginRequest(const std::string& data, HANDLE hPipe) {
+void SendLoginRequest(const string& data, HANDLE hPipe) {
     size_t loginEnd = data.find(':');
     size_t passwordEnd = data.find(':', loginEnd + 1);
 
-    if (loginEnd != std::string::npos && passwordEnd == std::string::npos) {
-        std::string login = data.substr(0, loginEnd);
-        std::string password =
+    if (loginEnd != string::npos && passwordEnd == string::npos) {
+        string login = data.substr(0, loginEnd);
+        string password =
             data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
-        std::string json =
+        string json =
             "{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}";
 
         Log(LogLevel::INFO,
@@ -80,14 +82,14 @@ void SendLoginRequest(const std::string& data, HANDLE hPipe) {
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLoginRequest: Sending request to server");
 
-        std::string response =
+        string response =
             SendPostRequest("http://" SERVER_IP ":8080/auth/login", json);
 
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLoginRequest: Response: " + response);
 
         // JWT cutting
-        if (response.find("JWT{Bearer ") != std::string::npos) {
+        if (response.find("JWT{Bearer ") != string::npos) {
             size_t jwtStart = response.find("JWT{Bearer ") + 11;
             size_t jwtEnd = response.find("}", jwtStart);
             global_JWT = response.substr(jwtStart, jwtEnd - jwtStart);
@@ -107,19 +109,19 @@ void SendLoginRequest(const std::string& data, HANDLE hPipe) {
     }
 }
 
-void SendLicenseActivateRequest(const std::string data, HANDLE hPipe) {
+void SendLicenseActivateRequest(const string data, HANDLE hPipe) {
     size_t activationCodeEnd = data.find(':');
     size_t deviceNameEnd = data.find(':', activationCodeEnd + 1);
     size_t macAddressEnd = data.find(':', deviceNameEnd + 1);
 
-    if (activationCodeEnd != std::string::npos &&
-        deviceNameEnd != std::string::npos &&
-        macAddressEnd == std::string::npos) {
-        std::string activationCode = data.substr(0, activationCodeEnd);
-        std::string deviceName = data.substr(
+    if (activationCodeEnd != string::npos &&
+        deviceNameEnd != string::npos &&
+        macAddressEnd == string::npos) {
+        string activationCode = data.substr(0, activationCodeEnd);
+        string deviceName = data.substr(
             activationCodeEnd + 1, deviceNameEnd - activationCodeEnd - 1);
-        std::string macAddress = data.substr(deviceNameEnd + 1);
-        std::string json = "{\"activationCode\":\"" + activationCode +
+        string macAddress = data.substr(deviceNameEnd + 1);
+        string json = "{\"activationCode\":\"" + activationCode +
                            "\",\"deviceName\":\"" + deviceName +
                            "\",\"macAddress\":\"" + macAddress + "\"}";
 
@@ -130,7 +132,7 @@ void SendLicenseActivateRequest(const std::string data, HANDLE hPipe) {
             "RequestHandler.cpp: SendLicenseActivateRequest: Sending request "
             "to server");
 
-        std::string response =
+        string response =
             SendPostRequest("http://" SERVER_IP ":8080/license/activate", json);
 
         Log(LogLevel::INFO,
@@ -138,7 +140,7 @@ void SendLicenseActivateRequest(const std::string data, HANDLE hPipe) {
                 response);
 
         // Ticket cutting
-        if (response.find("Ticket{") != std::string::npos) {
+        if (response.find("Ticket{") != string::npos) {
             size_t ticketStart = response.find("Ticket{") + 7;
             size_t ticketEnd = response.find("}", ticketStart);
             global_TICKET =
@@ -154,21 +156,75 @@ void SendLicenseActivateRequest(const std::string data, HANDLE hPipe) {
 
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLicenseActivateRequest: Response sent to "
-            "client");
+        "client");
     } else {
         Log(LogLevel::ERR,
             "RequestHandler.cpp: SendLicenseActivateRequest: Invalid "
             "credentials format");
     }
+   
 }
 
-void SendLicenseInfoRequest(const std::string data, HANDLE hPipe) {
+
+void SendLicenseUpdateRequest(const string data, HANDLE hPipe) {
+    size_t loginEnd = data.find(':');
+    size_t passwordEnd = data.find(':', loginEnd + 1);
+    size_t licenseCodeEnd = data.find(':', passwordEnd + 1);
+    size_t macAddressEnd = data.find(':', licenseCodeEnd + 1);
+
+    if (loginEnd != string::npos && passwordEnd != string::npos &&
+        licenseCodeEnd != string::npos && macAddressEnd == string::npos) {
+        string login = data.substr(0, loginEnd);
+        string password = data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
+        string licenseCode =
+            data.substr(passwordEnd + 1, licenseCodeEnd - passwordEnd - 1);
+        string macAddress = data.substr(licenseCodeEnd + 1);
+
+        string json = "{\"login\":\"" + login + "\",\"password\":\"" +
+                      password + "\",\"licenseCode\":\"" + licenseCode +
+                      "\",\"macAddress\":\"" + macAddress + "\"}";
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendLicenseUpdateRequest: JSON data: " + json);
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendLicenseUpdateRequest: Sending request "
+            "to server");
+        string response =
+            SendPostRequest("http://" SERVER_IP ":8080/license/update", json);
+
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendLicenseUpdateRequest: Response: " +
+                response);
+
+        if (response.find("Ticket{") != string::npos) {
+            size_t ticketStart = response.find("Ticket{") + 7;
+            size_t ticketEnd = response.find("}", ticketStart);
+            global_TICKET =
+                "Ticket{" +
+                response.substr(ticketStart, ticketEnd - ticketStart) + "}";
+            // global_LICENSE_CODE = activationCode;
+            Log(LogLevel::INFO,
+                "RequestHandler.cpp: SendLicenseUpdateRequest: " +
+                    global_TICKET);
+        }
+        WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
+
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendLicenseUpdateRequest: Response sent to "
+            "client");
+    } else {
+        Log(LogLevel::ERR,
+            "RequestHandler.cpp: SendLicenseUpdateRequest: Invalid "
+            "credentials format");
+    }
+}
+
+void SendLicenseInfoRequest(const string data, HANDLE hPipe) {
     size_t macAddressEnd = data.find(':');
 
-    if (macAddressEnd == std::string::npos) {
-        std::string macAddress = data.substr(0, macAddressEnd);
+    if (macAddressEnd == string::npos) {
+        string macAddress = data.substr(0, macAddressEnd);
 
-        std::string response = SendGetRequest(
+        string response = SendGetRequest(
             "http://" SERVER_IP ":8080/license/info?macAddress=" + macAddress);
 
         Log(LogLevel::INFO,
@@ -176,7 +232,7 @@ void SendLicenseInfoRequest(const std::string data, HANDLE hPipe) {
                 response);
 
         // Ticket cutting
-        if (response.find("Ticket{") != std::string::npos) {
+        if (response.find("Ticket{") != string::npos) {
             size_t ticketStart = response.find("Ticket{") + 7;
             size_t ticketEnd = response.find("}", ticketStart);
             global_TICKET =
@@ -199,16 +255,16 @@ void SendLicenseInfoRequest(const std::string data, HANDLE hPipe) {
     }
 }
 
-void HandleRequest(const std::string& request, HANDLE hPipe) {
+void HandleRequest(const string& request, HANDLE hPipe) {
     size_t pos = request.find(':');
-    if (pos == std::string::npos) {
+    if (pos == string::npos) {
         Log(LogLevel::ERR,
             "RequestHandler.cpp: HandleRequest: Invalid request format");
         return;
     }
 
-    std::string command = request.substr(0, pos);
-    std::string data = request.substr(pos + 1);
+    string command = request.substr(0, pos);
+    string data = request.substr(pos + 1);
 
     if (command == "register") {
         Log(LogLevel::INFO,
@@ -222,7 +278,12 @@ void HandleRequest(const std::string& request, HANDLE hPipe) {
             "RequestHandler.cpp: HandleRequest: License activation request");
         SendLicenseActivateRequest(data, hPipe);
 
-    } else if (command == "license_info") {
+    } else if (command == "license_update") {
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: HandleRequest: License update request");
+        SendLicenseUpdateRequest(data, hPipe);
+    }
+    else if (command == "license_info") {
         Log(LogLevel::INFO,
             "RequestHandler.cpp: HandleRequest: License info request");
         SendLicenseInfoRequest(data, hPipe);
@@ -232,7 +293,7 @@ void HandleRequest(const std::string& request, HANDLE hPipe) {
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT request");
         Log(LogLevel::INFO,
             "RequestHandler.cpp: HandleRequest: JWT: " + global_JWT);
-        std::string isHaveJWT = (global_JWT != "") ? global_LOGIN : "false";
+        string isHaveJWT = (global_JWT != "") ? global_LOGIN : "false";
         WriteFile(hPipe, isHaveJWT.c_str(), isHaveJWT.length(), NULL, NULL);
     }
     // else if (command == "licensecheck"){ // return license code if user
@@ -263,14 +324,14 @@ void HandleRequest(const std::string& request, HANDLE hPipe) {
 }
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
+    ((string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
 
-std::string SendPostRequest(const std::string& url, const std::string& data) {
+string SendPostRequest(const string& url, const string& data) {
     CURL* curl;
     CURLcode res;
-    std::string readBuffer;
+    string readBuffer;
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
@@ -279,7 +340,7 @@ std::string SendPostRequest(const std::string& url, const std::string& data) {
         headers = curl_slist_append(headers, "Content-Type: application/json");
         headers = curl_slist_append(
             headers,
-            ("Content-Length: " + std::to_string(data.length())).c_str());
+            ("Content-Length: " + to_string(data.length())).c_str());
 
         // If token is not empty, add it to headers
         if (global_JWT != "") {
@@ -298,7 +359,7 @@ std::string SendPostRequest(const std::string& url, const std::string& data) {
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendPostRequest: Headers: Content-Type: "
             "application/json, Content-Length: " +
-                std::to_string(data.length()));
+                to_string(data.length()));
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendPostRequest: Data: " + data);
 
@@ -307,7 +368,7 @@ std::string SendPostRequest(const std::string& url, const std::string& data) {
             Log(LogLevel::ERR,
                 "RequestHandler.cpp: SendPostRequest: curl_easy_perform() "
                 "failed: " +
-                    std::string(curl_easy_strerror(res)));
+                    string(curl_easy_strerror(res)));
         } else {
             Log(LogLevel::INFO,
                 "RequestHandler.cpp: SendPostRequest: Response taken");
@@ -324,10 +385,10 @@ std::string SendPostRequest(const std::string& url, const std::string& data) {
     return readBuffer;
 }
 
-std::string SendGetRequest(const std::string& url) {
+string SendGetRequest(const string& url) {
     CURL* curl;
     CURLcode res;
-    std::string readBuffer;
+    string readBuffer;
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
@@ -351,7 +412,7 @@ std::string SendGetRequest(const std::string& url) {
             Log(LogLevel::ERR,
                 "RequestHandler.cpp: SendGetRequest: curl_easy_perform() "
                 "failed: " +
-                    std::string(curl_easy_strerror(res)));
+                    string(curl_easy_strerror(res)));
         } else {
             Log(LogLevel::INFO,
                 "RequestHandler.cpp: SendGetRequest: Response taken");
