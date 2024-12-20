@@ -24,10 +24,10 @@ void runJavaFXApplication();
 
 #define SERVICE_NAME _T("AntivirusService")
 #define PIPE_NAME _T("\\\\.\\pipe\\AntivirusServicePipe")
-#define PATH_TO_CLIENT \
-    "D:/Github/Antivirus_Client/antivirus/target/app/bin/app.bat"  // C:/Antivirus_Client/target/app/bin/app.bat
-#define WORKING_DIRECTORY \
-    "D:/Github/Antivirus_Client/antivirus/target"  // C:/Antivirus_Client/target
+#define PATH_TO_CLIENT "D:\\Desktop\\Antivirus_Client\\antivirus\\target\\app\\bin\\app.bat"
+// C:/Antivirus_Client/target/app/bin/app.bat
+#define WORKING_DIRECTORY "D:\\Desktop\\Antivirus_Client\\antivirus\\target"
+// C:/Antivirus_Client/target
 // #define PATH_TO_JDK_LIB L"C:\\javafx-sdk-23.0.1\\lib"
 
 // IMPORTANT:

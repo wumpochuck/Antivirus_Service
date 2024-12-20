@@ -13,6 +13,7 @@ using namespace std;
 
 string global_JWT = "";
 string global_LOGIN = "";
+string global_PASSWORD = "";
 string global_TICKET = "";
 // string global_LICENSE_CODE = "";
 
@@ -23,26 +24,20 @@ void SendRegisterRequest(const string& data, HANDLE hPipe) {
     size_t passwordEnd = data.find(':', loginEnd + 1);
     size_t emailEnd = data.find(':', passwordEnd + 1);
 
-    if (loginEnd != string::npos && passwordEnd != string::npos &&
-        emailEnd == string::npos) {
+    if (loginEnd != string::npos && passwordEnd != string::npos && emailEnd == string::npos) {
         string login = data.substr(0, loginEnd);
-        string password =
-            data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
+        string password = data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
         string email = data.substr(passwordEnd + 1);
-        string json = "{\"login\":\"" + login + "\",\"password\":\"" +
-                           password + "\",\"email\":\"" + email + "\"}";
+        string json = "{\"login\":\"" + login + "\",\"password\":\"" + password + "\",\"email\":\"" + email + "\"}";
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendRegisterRequest: JSON data: " + json);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendRegisterRequest: JSON data: " + json);
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendRegisterRequest: Sending request to "
             "server");
 
-        string response =
-            SendPostRequest("http://" SERVER_IP ":8080/auth/register", json);
+        string response = SendPostRequest("http://" SERVER_IP ":" SERVER_PORT "/auth/register", json);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLoginRequest: Response: " + response);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: Response: " + response);
 
         // JWT cutting
         if (response.find("JWT{Bearer ") != string::npos) {
@@ -50,15 +45,14 @@ void SendRegisterRequest(const string& data, HANDLE hPipe) {
             size_t jwtEnd = response.find("}", jwtStart);
             global_JWT = response.substr(jwtStart, jwtEnd - jwtStart);
             global_LOGIN = login;
+            global_PASSWORD = password;
             response = "Registration completed";
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendRegisterRequest: JWT: " + global_JWT);
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendRegisterRequest: JWT: " + global_JWT);
         }
 
         WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendRegisterRequest: Response sent to client");
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendRegisterRequest: Response sent to client");
     } else {
         Log(LogLevel::ERR,
             "RequestHandler.cpp: SendRegisterRequest: Invalid credentials "
@@ -72,21 +66,15 @@ void SendLoginRequest(const string& data, HANDLE hPipe) {
 
     if (loginEnd != string::npos && passwordEnd == string::npos) {
         string login = data.substr(0, loginEnd);
-        string password =
-            data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
-        string json =
-            "{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}";
+        string password = data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
+        string json = "{\"login\":\"" + login + "\",\"password\":\"" + password + "\"}";
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLoginRequest: JSON data: " + json);
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLoginRequest: Sending request to server");
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: JSON data: " + json);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: Sending request to server");
 
-        string response =
-            SendPostRequest("http://" SERVER_IP ":8080/auth/login", json);
+        string response = SendPostRequest("http://" SERVER_IP ":" SERVER_PORT "/auth/login", json);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLoginRequest: Response: " + response);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: Response: " + response);
 
         // JWT cutting
         if (response.find("JWT{Bearer ") != string::npos) {
@@ -94,18 +82,16 @@ void SendLoginRequest(const string& data, HANDLE hPipe) {
             size_t jwtEnd = response.find("}", jwtStart);
             global_JWT = response.substr(jwtStart, jwtEnd - jwtStart);
             global_LOGIN = login;
+            global_PASSWORD = password;
             response = "Login completed";
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendLoginRequest: JWT: " + global_JWT);
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: JWT: " + global_JWT);
         }
 
         WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLoginRequest: Response sent to client");
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLoginRequest: Response sent to client");
     } else {
-        Log(LogLevel::ERR,
-            "RequestHandler.cpp: SendLoginRequest: Invalid credentials format");
+        Log(LogLevel::ERR, "RequestHandler.cpp: SendLoginRequest: Invalid credentials format");
     }
 }
 
@@ -114,57 +100,42 @@ void SendLicenseActivateRequest(const string data, HANDLE hPipe) {
     size_t deviceNameEnd = data.find(':', activationCodeEnd + 1);
     size_t macAddressEnd = data.find(':', deviceNameEnd + 1);
 
-    if (activationCodeEnd != string::npos &&
-        deviceNameEnd != string::npos &&
-        macAddressEnd == string::npos) {
+    if (activationCodeEnd != string::npos && deviceNameEnd != string::npos && macAddressEnd == string::npos) {
         string activationCode = data.substr(0, activationCodeEnd);
-        string deviceName = data.substr(
-            activationCodeEnd + 1, deviceNameEnd - activationCodeEnd - 1);
+        string deviceName = data.substr(activationCodeEnd + 1, deviceNameEnd - activationCodeEnd - 1);
         string macAddress = data.substr(deviceNameEnd + 1);
-        string json = "{\"activationCode\":\"" + activationCode +
-                           "\",\"deviceName\":\"" + deviceName +
-                           "\",\"macAddress\":\"" + macAddress + "\"}";
+        string json = "{\"activationCode\":\"" + activationCode + "\",\"deviceName\":\"" + deviceName +
+                      "\",\"macAddress\":\"" + macAddress + "\"}";
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLicenseActivateRequest: JSON data: " +
-                json);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseActivateRequest: JSON data: " + json);
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLicenseActivateRequest: Sending request "
             "to server");
 
-        string response =
-            SendPostRequest("http://" SERVER_IP ":8080/license/activate", json);
+        string response = SendPostRequest("http://" SERVER_IP ":" SERVER_PORT "/license/activate", json);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLicenseActivateRequest: Response: " +
-                response);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseActivateRequest: Response: " + response);
 
         // Ticket cutting
         if (response.find("Ticket{") != string::npos) {
             size_t ticketStart = response.find("Ticket{") + 7;
             size_t ticketEnd = response.find("}", ticketStart);
-            global_TICKET =
-                "Ticket{" +
-                response.substr(ticketStart, ticketEnd - ticketStart) + "}";
+            global_TICKET = "Ticket{" + response.substr(ticketStart, ticketEnd - ticketStart) + "}";
             // global_LICENSE_CODE = activationCode;
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendLicenseActivateRequest: " +
-                    global_TICKET);
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseActivateRequest: " + global_TICKET);
         }
 
         WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
 
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLicenseActivateRequest: Response sent to "
-        "client");
+            "client");
     } else {
         Log(LogLevel::ERR,
             "RequestHandler.cpp: SendLicenseActivateRequest: Invalid "
             "credentials format");
     }
-   
 }
-
 
 void SendLicenseUpdateRequest(const string data, HANDLE hPipe) {
     size_t loginEnd = data.find(':');
@@ -172,39 +143,29 @@ void SendLicenseUpdateRequest(const string data, HANDLE hPipe) {
     size_t licenseCodeEnd = data.find(':', passwordEnd + 1);
     size_t macAddressEnd = data.find(':', licenseCodeEnd + 1);
 
-    if (loginEnd != string::npos && passwordEnd != string::npos &&
-        licenseCodeEnd != string::npos && macAddressEnd == string::npos) {
+    if (loginEnd != string::npos && passwordEnd != string::npos && licenseCodeEnd != string::npos &&
+        macAddressEnd == string::npos) {
         string login = data.substr(0, loginEnd);
         string password = data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
-        string licenseCode =
-            data.substr(passwordEnd + 1, licenseCodeEnd - passwordEnd - 1);
+        string licenseCode = data.substr(passwordEnd + 1, licenseCodeEnd - passwordEnd - 1);
         string macAddress = data.substr(licenseCodeEnd + 1);
 
-        string json = "{\"login\":\"" + login + "\",\"password\":\"" +
-                      password + "\",\"licenseCode\":\"" + licenseCode +
-                      "\",\"macAddress\":\"" + macAddress + "\"}";
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLicenseUpdateRequest: JSON data: " + json);
+        string json = "{\"login\":\"" + login + "\",\"password\":\"" + password + "\",\"licenseCode\":\"" +
+                      licenseCode + "\",\"macAddress\":\"" + macAddress + "\"}";
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseUpdateRequest: JSON data: " + json);
         Log(LogLevel::INFO,
             "RequestHandler.cpp: SendLicenseUpdateRequest: Sending request "
             "to server");
-        string response =
-            SendPostRequest("http://" SERVER_IP ":8080/license/update", json);
+        string response = SendPostRequest("http://" SERVER_IP ":" SERVER_PORT "/license/update", json);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLicenseUpdateRequest: Response: " +
-                response);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseUpdateRequest: Response: " + response);
 
         if (response.find("Ticket{") != string::npos) {
             size_t ticketStart = response.find("Ticket{") + 7;
             size_t ticketEnd = response.find("}", ticketStart);
-            global_TICKET =
-                "Ticket{" +
-                response.substr(ticketStart, ticketEnd - ticketStart) + "}";
+            global_TICKET = "Ticket{" + response.substr(ticketStart, ticketEnd - ticketStart) + "}";
             // global_LICENSE_CODE = activationCode;
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendLicenseUpdateRequest: " +
-                    global_TICKET);
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseUpdateRequest: " + global_TICKET);
         }
         WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
 
@@ -224,23 +185,17 @@ void SendLicenseInfoRequest(const string data, HANDLE hPipe) {
     if (macAddressEnd == string::npos) {
         string macAddress = data.substr(0, macAddressEnd);
 
-        string response = SendGetRequest(
-            "http://" SERVER_IP ":8080/license/info?macAddress=" + macAddress);
+        string response = SendGetRequest("http://" SERVER_IP ":" SERVER_PORT "/license/info?macAddress=" + macAddress);
 
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendLicenseInfoRequest: Response: " +
-                response);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseInfoRequest: Response: " + response);
 
         // Ticket cutting
         if (response.find("Ticket{") != string::npos) {
             size_t ticketStart = response.find("Ticket{") + 7;
             size_t ticketEnd = response.find("}", ticketStart);
-            global_TICKET =
-                "Ticket{" +
-                response.substr(ticketStart, ticketEnd - ticketStart) + "}";
+            global_TICKET = "Ticket{" + response.substr(ticketStart, ticketEnd - ticketStart) + "}";
             // global_LICENSE_CODE = licenseCode;
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendLicenseInfoRequest: " + global_TICKET);
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendLicenseInfoRequest: " + global_TICKET);
         }
 
         WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
@@ -255,11 +210,63 @@ void SendLicenseInfoRequest(const string data, HANDLE hPipe) {
     }
 }
 
+void SendUserUpdateRequest(const string data, HANDLE hPipe) {
+    string response = ""; 
+
+    // Check for valid password, if false send response to client instantly
+    size_t oldPasswordEnd = data.find(':');
+    string oldPassword = data.substr(0, oldPasswordEnd);
+    if(oldPassword != global_PASSWORD){
+        Log(LogLevel::INFO,"RequestHandler.cpp: SendUserUpdateRequest: Invalid password");
+        response = "Validation error: Password is incorrect";
+        WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
+        return;
+    }
+
+    size_t loginEnd = data.find(':', oldPasswordEnd + 1);
+    size_t passwordEnd = data.find(':', loginEnd + 1);
+    size_t emailEnd = data.find(':', passwordEnd + 1);
+
+    if (loginEnd != string::npos && passwordEnd != string::npos && emailEnd == string::npos) {
+        string login = data.substr(oldPasswordEnd + 1, loginEnd - oldPasswordEnd - 1);
+        string password = data.substr(loginEnd + 1, passwordEnd - loginEnd - 1);
+        string email = data.substr(passwordEnd + 1);
+        if(login == "null") login = "";
+        if(password == "null") password = "";
+        if(email == "null") email = "";
+        string json = "{\"login\":\"" + login + "\",\"passwordHash\":\"" + password + "\",\"email\":\"" + email + "\"}";
+
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendUserUpdateRequest: JSON data: " + json);
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendUserUpdateRequest: Sending request to "
+            "server");
+
+        response = SendPatchRequest("http://" SERVER_IP ":" SERVER_PORT "/user/update", json);
+
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendUserUpdateRequest: Response: " + response);
+
+        // if returned User updated succesfully
+        if(response.find("User updated") != string::npos){
+            global_LOGIN = "";
+            global_PASSWORD = "";
+            global_JWT = "";
+            global_TICKET = "";
+        }
+
+        WriteFile(hPipe, response.c_str(), response.length(), NULL, NULL);
+
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendUserUpdateRequest: Response sent to client");
+    } else {
+        Log(LogLevel::ERR,
+            "RequestHandler.cpp: SendUserUpdateRequest: Invalid credentials "
+            "format");
+    }
+}
+
 void HandleRequest(const string& request, HANDLE hPipe) {
     size_t pos = request.find(':');
     if (pos == string::npos) {
-        Log(LogLevel::ERR,
-            "RequestHandler.cpp: HandleRequest: Invalid request format");
+        Log(LogLevel::ERR, "RequestHandler.cpp: HandleRequest: Invalid request format");
         return;
     }
 
@@ -267,49 +274,41 @@ void HandleRequest(const string& request, HANDLE hPipe) {
     string data = request.substr(pos + 1);
 
     if (command == "register") {
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: Register request");
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: Register request");
         SendRegisterRequest(data, hPipe);
     } else if (command == "login") {
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: Login request");
         SendLoginRequest(data, hPipe);
     } else if (command == "license_activation") {
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: License activation request");
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License activation request");
         SendLicenseActivateRequest(data, hPipe);
 
     } else if (command == "license_update") {
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: License update request");
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License update request");
         SendLicenseUpdateRequest(data, hPipe);
-    }
-    else if (command == "license_info") {
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: License info request");
+    } else if (command == "license_info") {
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License info request");
         SendLicenseInfoRequest(data, hPipe);
 
-    } else if (command ==
-               "jwtcheck") {  // return login if user is already auntheticated
+    } else if (command == "update_user") {
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: Update user request");
+        SendUserUpdateRequest(data, hPipe);
+    } else if (command == "jwtcheck") {  // return login if user is already auntheticated
         Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT request");
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: JWT: " + global_JWT);
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT: " + global_JWT);
         string isHaveJWT = (global_JWT != "") ? global_LOGIN : "false";
         WriteFile(hPipe, isHaveJWT.c_str(), isHaveJWT.length(), NULL, NULL);
+    } else if(command == "jwtupdate"){
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT update request");
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: current JWT: " + global_JWT);
+        data = global_LOGIN + ":" + global_PASSWORD;
+        SendLoginRequest(data, hPipe);
     }
-    // else if (command == "licensecheck"){ // return license code if user
-    // bought it
-    //     Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License check
-    //     request");
-    // Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: License code: " +
-    // global_LICENSE_CODE); WriteFile(hPipe, global_LICENSE_CODE.c_str(),
-    // global_LICENSE_CODE.length(), NULL, NULL);
-    // }
-    else if (command ==
-             "jwtclear") {  // clear jwt etc (on exit button in client clicked)
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: HandleRequest: JWT clear request");
+    else if (command == "jwtclear") {  // clear jwt etc (on exit button in client clicked)
+        Log(LogLevel::INFO, "RequestHandler.cpp: HandleRequest: JWT clear request");
         global_JWT = "";
         global_LOGIN = "";
+        global_PASSWORD = "";
         global_TICKET = "";
         // global_LICENSE_CODE = "";
         WriteFile(hPipe, "JWT cleared", 11, NULL, NULL);
@@ -318,8 +317,7 @@ void HandleRequest(const string& request, HANDLE hPipe) {
     // TODO: license expiration && update
 
     else {
-        Log(LogLevel::ERR,
-            "RequestHandler.cpp: HandleRequest: Unknown command");
+        Log(LogLevel::ERR, "RequestHandler.cpp: HandleRequest: Unknown command");
     }
 }
 
@@ -338,14 +336,11 @@ string SendPostRequest(const string& url, const string& data) {
     if (curl) {
         struct curl_slist* headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
-        headers = curl_slist_append(
-            headers,
-            ("Content-Length: " + to_string(data.length())).c_str());
+        headers = curl_slist_append(headers, ("Content-Length: " + to_string(data.length())).c_str());
 
         // If token is not empty, add it to headers
         if (global_JWT != "") {
-            headers = curl_slist_append(
-                headers, ("Authorization: Bearer " + global_JWT).c_str());
+            headers = curl_slist_append(headers, ("Authorization: Bearer " + global_JWT).c_str());
         }
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -360,8 +355,7 @@ string SendPostRequest(const string& url, const string& data) {
             "RequestHandler.cpp: SendPostRequest: Headers: Content-Type: "
             "application/json, Content-Length: " +
                 to_string(data.length()));
-        Log(LogLevel::INFO,
-            "RequestHandler.cpp: SendPostRequest: Data: " + data);
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendPostRequest: Data: " + data);
 
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
@@ -370,15 +364,13 @@ string SendPostRequest(const string& url, const string& data) {
                 "failed: " +
                     string(curl_easy_strerror(res)));
         } else {
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendPostRequest: Response taken");
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendPostRequest: Response taken");
         }
 
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
     } else {
-        Log(LogLevel::ERR,
-            "RequestHandler.cpp: SendPostRequest: curl_easy_init() failed");
+        Log(LogLevel::ERR, "RequestHandler.cpp: SendPostRequest: curl_easy_init() failed");
     }
     curl_global_cleanup();
 
@@ -398,8 +390,7 @@ string SendGetRequest(const string& url) {
 
         // If token is not empty, add it to headers
         if (global_JWT != "") {
-            headers = curl_slist_append(
-                headers, ("Authorization: Bearer " + global_JWT).c_str());
+            headers = curl_slist_append(headers, ("Authorization: Bearer " + global_JWT).c_str());
         }
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
@@ -414,15 +405,65 @@ string SendGetRequest(const string& url) {
                 "failed: " +
                     string(curl_easy_strerror(res)));
         } else {
-            Log(LogLevel::INFO,
-                "RequestHandler.cpp: SendGetRequest: Response taken");
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendGetRequest: Response taken");
         }
 
         curl_easy_cleanup(curl);
         curl_slist_free_all(headers);
     } else {
-        Log(LogLevel::ERR,
-            "RequestHandler.cpp: SendGetRequest: curl_easy_init() failed");
+        Log(LogLevel::ERR, "RequestHandler.cpp: SendGetRequest: curl_easy_init() failed");
+    }
+    curl_global_cleanup();
+
+    return readBuffer;
+}
+
+string SendPatchRequest(const string& url, const string& data){
+    CURL* curl;
+    CURLcode res;
+    string readBuffer;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    if (curl) {
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        headers = curl_slist_append(headers, ("Content-Length: " + to_string(data.length())).c_str());
+
+        // If token is not empty, add it to headers
+        if (global_JWT != "") {
+            headers = curl_slist_append(headers, ("Authorization: Bearer " + global_JWT).c_str());
+        }
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendPatchRequest: URL: " + url);
+        Log(LogLevel::INFO,
+            "RequestHandler.cpp: SendPatchRequest: Headers: Content-Type: "
+            "application/json, Content-Length: " +
+                to_string(data.length()));
+        Log(LogLevel::INFO, "RequestHandler.cpp: SendPatchRequest: Data: " + data);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            Log(LogLevel::ERR,
+                "RequestHandler.cpp: SendPatchRequest: curl_easy_perform() "
+                "failed: " +
+                    string(curl_easy_strerror(res)));
+        } else {
+            Log(LogLevel::INFO, "RequestHandler.cpp: SendPatchRequest: Response taken");
+        }
+
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+    } else {
+        Log(LogLevel::ERR, "RequestHandler.cpp: SendPatchRequest: curl_easy_init() failed");
     }
     curl_global_cleanup();
 
