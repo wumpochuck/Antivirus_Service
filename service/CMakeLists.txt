@@ -1,37 +1,47 @@
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 
 project(AntivirusService)
 
-# Указываем стандарт C++
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Подключаем статическую библиотеку cURL
-add_library(curl STATIC IMPORTED)
-set_target_properties(curl PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/lib/libcurl_a.lib"
-    INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/include"
-)
+# Отдельная сборка
+add_subdirectory(lib/logger)
+add_subdirectory(lib/curl-8.11.0)
 
-# Объявляем пути до исходных файлов
+# Исходные файлы
 set(SOURCE_FILES
-    "src/Antivirus_Service.cpp"
-    "src/Logger.cpp"
-    "src/RequestHandler.cpp"
+    "apps/antimalware_service_app/src/Antivirus_Service.cpp"
 )
 
-# Добавляем исполняемый файл и исходные файлы
+# # Статические библиотеки
+# # TODO МОЖНО ВЫТАЩИТЬ ИЗ МУСОРА
+# add_library(curl STATIC IMPORTED)
+# set_target_properties(curl PROPERTIES
+#     IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/lib/libcurl_a.lib"
+#     INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/include"
+# )
+
+# Исполняемый файл
 add_executable(AntivirusService ${SOURCE_FILES})
 
-# Указываем директорию с заголовочными файлами
-target_include_directories(AntivirusService PRIVATE 
-    "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/include"
+# Директории с .h файлами
+target_include_directories(AntivirusService PRIVATE
+    # "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/builds/libcurl-vc-x86-release-static-ipv6-sspi-schannel/include"
+    "${CMAKE_SOURCE_DIR}/lib/logger/include"
+    "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/include"
 )
 
-# Линкуем библиотеки: libcurl + системные библиотеки
+# Линковка библиотек
 target_link_libraries(AntivirusService 
-    curl                  # Библиотека cURL
+    Logger                # Библиотека Logger
+    libcurl                  # Библиотека cURL
     Ws2_32               # Библиотека Windows Sockets
     Crypt32              # Библиотека шифрования
     Wldap32              # LDAP API
     Normaliz             # Unicode Normalization API
 )
+
+
+# cmake ..
+# cmake --build . --config Release
