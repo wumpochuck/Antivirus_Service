@@ -22,4 +22,6 @@ private:
     std::string LogLevelToString(LogLevel level) const;
 };
 
+extern Logger logger;
+
 #endif  // LOGGER_H
