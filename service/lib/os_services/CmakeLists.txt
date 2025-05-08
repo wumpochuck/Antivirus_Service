@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.30)
+
+project(os_services_lib)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(SOURCE_FILES
+    "src/PipeService.cpp"
+)
+
+add_library(os_services STATIC ${SOURCE_FILES})
+
+target_include_directories(os_services PUBLIC 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+)
+
+target_link_libraries(os_services 
+    Logger                # Библиотека Logger
+)
+
