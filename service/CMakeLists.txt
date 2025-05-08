@@ -10,6 +10,7 @@ add_subdirectory(lib/logger)
 add_subdirectory(lib/curl-8.11.0)
 add_subdirectory(lib/account_manager)
 add_subdirectory(lib/os_services)
+add_subdirectory(lib/license_service)
 
 # Исходные файлы
 set(SOURCE_FILES
@@ -28,6 +29,7 @@ target_include_directories(AntivirusService PRIVATE
     "${CMAKE_SOURCE_DIR}/lib/curl-8.11.0/include"
     "${CMAKE_SOURCE_DIR}/lib/account_manager/include"
     "${CMAKE_SOURCE_DIR}/lib/os_services/include"
+    "${CMAKE_SOURCE_DIR}/lib/license_service/include"
 )
 
 # Линковка библиотек
@@ -35,6 +37,7 @@ target_link_libraries(AntivirusService
     Logger                # Библиотека Logger
     libcurl               # Библиотека cURL
     account_manager       # Библиотека Account Manager
+    license_service       # Библиотека License Service
     os_services           # Библиотека OS Services
     Ws2_32                # Библиотека Windows Sockets
     Crypt32               # Библиотека шифрования

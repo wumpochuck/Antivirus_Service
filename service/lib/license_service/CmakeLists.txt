@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.30)
+
+project(license_service_lib)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(SOURCE_FILES
+    "src/license_service.cpp"
+)
+
+add_library(license_service STATIC ${SOURCE_FILES})
+
+target_include_directories(license_service PUBLIC 
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}../curl-8.11.0/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}../account_manager/include"
+)
+
+target_link_libraries(license_service 
+    libcurl               # Библиотека cURL
+    account_manager       # Библиотека Account Manager
+    Ws2_32                # Библиотека Windows Sockets
+    Crypt32               # Библиотека шифрования
+    Wldap32               # LDAP API
+    Normaliz              # Unicode Normalization API
+)
+
