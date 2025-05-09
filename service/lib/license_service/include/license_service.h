@@ -30,6 +30,8 @@ class LicenseService {
         void setTicket(string newTicket) { ticket = newTicket; }
 
         string activateLicenseRequest(string data);
+        string licenseInfoRequest(string data);
+        string licenseUpdateRequest(string data);
 
 };
 

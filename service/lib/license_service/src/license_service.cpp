@@ -101,9 +101,143 @@ string LicenseService::activateLicenseRequest(string data) {
     return response;
 }
 
+string LicenseService::licenseInfoRequest(string data) {
+    // data содержит только macAddress
+    string macAddress = data;
 
+    // Получаем licenseCode из класса
+    string licenseCode = getLicenseCode();
+    if (licenseCode.empty()) {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: License code is empty.");
+        return "License code is empty";
+    }
 
+    // Формируем JSON body
+    string jsonData = "{\"macAddress\":\"" + macAddress + "\",\"licenseCode\":\"" + licenseCode + "\"}";
 
+    CURL* curl;
+    CURLcode res;
+    string response = "";
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+
+    if (!curl) {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: curl_easy_init() failed");
+        return "Initialization failed";
+    }
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    // Если токен доступен, добавляем его в заголовок Authorization
+    if (!accountManager.getJwt().empty()) {
+        string authHeader = "Authorization: Bearer " + accountManager.getJwt();
+        headers = curl_slist_append(headers, authHeader.c_str());
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, SERVER_IP "/license/info");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, license_service_WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, license_service_HeaderCallback);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, this); // Передаем указатель на текущий объект
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: curl_easy_perform() failed: " + string(curl_easy_strerror(res)));
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        return "Request failed";
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    logger.Log(LogLevel::INFO, "LicenseService.cpp: licenseInfoRequest: Response: " + response);
+
+    // Проверяем успешность запроса
+    if (response.find("License found") != string::npos) {
+        logger.Log(LogLevel::INFO, "LicenseService.cpp: licenseInfoRequest: License found. Response: " + response);
+        return response;
+    } else {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: Request failed. Response: " + response);
+        return response;
+    }
+
+    return response;
+}
+
+string LicenseService::licenseUpdateRequest(string data) {
+    // Разделяем входные данные на login, password, licenseCode и macAddress
+    size_t loginEnd = data.find(":");
+    string login = data.substr(0, loginEnd);
+
+    size_t passwordStart = loginEnd + 1;
+    size_t passwordEnd = data.find(":", passwordStart);
+    string password = data.substr(passwordStart, passwordEnd - passwordStart);
+
+    size_t licenseCodeStart = passwordEnd + 1;
+    size_t licenseCodeEnd = data.find(":", licenseCodeStart);
+    string licenseCode = data.substr(licenseCodeStart, licenseCodeEnd - licenseCodeStart);
+
+    string macAddress = data.substr(licenseCodeEnd + 1);
+
+    // Формируем JSON body
+    string jsonData = "{\"login\":\"" + login + "\",\"password\":\"" + password + "\",\"licenseCode\":\"" + licenseCode + "\",\"macAddress\":\"" + macAddress + "\"}";
+
+    CURL* curl;
+    CURLcode res;
+    string response = "";
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+
+    if (!curl) {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseUpdateRequest: curl_easy_init() failed");
+        return "Initialization failed";
+    }
+
+    struct curl_slist* headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+
+    // Если токен доступен, добавляем его в заголовок Authorization
+    if (!accountManager.getJwt().empty()) {
+        string authHeader = "Authorization: Bearer " + accountManager.getJwt();
+        headers = curl_slist_append(headers, authHeader.c_str());
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, SERVER_IP "/license/update");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonData.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, license_service_WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseUpdateRequest: curl_easy_perform() failed: " + string(curl_easy_strerror(res)));
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        return "Request failed";
+    }
+
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+
+    logger.Log(LogLevel::INFO, "LicenseService.cpp: licenseUpdateRequest: Response: " + response);
+
+    // Проверяем успешность обновления
+    if (response.find("Successful license update") != string::npos) {
+        logger.Log(LogLevel::INFO, "LicenseService.cpp: licenseUpdateRequest: Update successful. Response: " + response);
+        return response;
+    } else {
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseUpdateRequest: Update failed. Response: " + response);
+        return response;
+    }
+}
 
 
 
