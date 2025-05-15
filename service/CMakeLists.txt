@@ -48,3 +48,16 @@ target_link_libraries(AntivirusService
 
 # cmake ..
 # cmake --build . --config Release
+
+
+# Сборка стартера (с SecureDesktop)
+set(STARTER_SOURCE_FILES
+    "apps/starter/src/Starter.cpp"
+)
+add_executable(Starter ${STARTER_SOURCE_FILES})
+
+
+
+
+
+
