@@ -1,34 +1,74 @@
 #include "../include/ProcessLauncher.h"
 
-bool ProcessLauncher::LaunchProcess(const std::string& applicationPath, const std::string& arguments, HANDLE& processHandle) {
+bool ProcessLauncher::GetUserToken(HANDLE& hToken) {
+    DWORD dwSessionId = 0;
+    const int timeoutInMilliseconds = 120000; // 2 минуты
+    const int sleepInterval = 1000; // 1 секунда
+    int elapsedTime = 0;
+
+    // Пытаемся получить идентификатор активной сессии и токен пользователя
+    while (elapsedTime < timeoutInMilliseconds) {
+        dwSessionId = WTSGetActiveConsoleSessionId();
+        if (dwSessionId != 0xFFFFFFFF) {
+            if (WTSQueryUserToken(dwSessionId, &hToken)) {
+                // Успешно получили токен
+                return true;
+            } else {
+                logger.Log(LogLevel::ERR, "ProcessLauncher.cpp: GetUserToken: WTSQueryUserToken failed, retrying... Error: " + std::to_string(GetLastError()));
+            }
+        } else {
+            logger.Log(LogLevel::ERR, "ProcessLauncher.cpp: GetUserToken: No active console session found, retrying...");
+        }
+
+        Sleep(sleepInterval);
+        elapsedTime += sleepInterval;
+    }
+
+    logger.Log(LogLevel::ERR, "ProcessLauncher.cpp: GetUserToken: Failed to obtain user token after 2 minutes.");
+    return false;
+}
+
+bool ProcessLauncher::LaunchProcess(const std::string& applicationPath, const std::string& applicationWorkingPath, const std::string& arguments, HANDLE& processHandle) {
+    HANDLE hToken = NULL;
+
+    // Получаем токен пользователя
+    if (!GetUserToken(hToken)) {
+        return false;
+    }
+    
+
     STARTUPINFO si = { sizeof(STARTUPINFO) };
     PROCESS_INFORMATION pi = { 0 };
 
     std::string commandLine = applicationPath + " " + arguments;
 
-    if (!CreateProcess(
-            NULL, 
-            &commandLine[0], // Command line
-            NULL,            // Process handle not inheritable
-            NULL,            // Thread handle not inheritable
-            FALSE,           // Set handle inheritance to FALSE
-            0,               // No creation flags
-            NULL,            // Use parent's environment block
-            NULL,            // Use parent's starting directory 
-            &si,             // Pointer to STARTUPINFO structure
-            &pi              // Pointer to PROCESS_INFORMATION structure
+    // Создаем процесс в пользовательской сессии
+    if (!CreateProcessAsUser(
+            hToken,                        // Токен пользователя
+            NULL,                          // Имя модуля (используем командную строку)
+            &commandLine[0],           // Командная строка
+            NULL,                          // Дескриптор процесса не наследуем
+            NULL,                          // Дескриптор потока не наследуем
+            FALSE,                         // Устанавливаем наследование дескрипторов в FALSE
+            CREATE_NEW_CONSOLE,            // Создаем новое консольное окно
+            NULL,                          // Используем окружение родительского процесса
+            applicationWorkingPath.c_str(),  // Рабочая директория
+            &si,                           // Указатель на структуру STARTUPINFO
+            &pi                            // Указатель на структуру PROCESS_INFORMATION
         )) {
-        logger.Log(LogLevel::ERR, "Failed to create process. Error: " + std::to_string(GetLastError()));
+        logger.Log(LogLevel::ERR, "ProcessLauncher.cpp: LaunchProcess: CreateProcessAsUser failed: " + std::to_string(GetLastError()));
+        CloseHandle(hToken);
         return false;
     }
 
     // Передаем handle процесса через ссылку
     processHandle = pi.hProcess;
 
-    // Закрываем handle потока, так как он больше не нужен
+    // Закрываем ненужные дескрипторы
     CloseHandle(pi.hThread);
+    CloseHandle(hToken);
 
-    logger.Log(LogLevel::INFO, "Process launched successfully: " + applicationPath + " " + arguments);
+    logger.Log(LogLevel::INFO, "ProcessLauncher.cpp: LaunchProcess: Process launched successfully: " + applicationPath + " " + arguments);
     return true;
 }
 

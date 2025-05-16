@@ -18,5 +18,6 @@ target_include_directories(os_services PUBLIC
 
 target_link_libraries(os_services 
     Logger                # Библиотека Logger
+    WtsApi32
 )
 

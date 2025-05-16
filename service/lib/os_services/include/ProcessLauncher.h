@@ -3,16 +3,21 @@
 
 #include <string>
 #include <windows.h>
+#include <WtsApi32.h>
 
 #include "../../logger/include/Logger.h"
 
 class ProcessLauncher {
     public:
     // Метод для запуска процесса с передачей HANDLE через ссылку
-    bool LaunchProcess(const std::string& applicationPath, const std::string& arguments, HANDLE& processHandle);
-
+    bool LaunchProcess(const std::string& applicationPath, const std::string& applicationWorkingPath, const std::string& arguments, HANDLE& processHandle);
+ 
     // Метод для завершения процесса и закрытия HANDLE
     bool EndProcess(HANDLE& processHandle);
+
+    bool GetUserToken(HANDLE& hToken);
 };
+
+extern ProcessLauncher processLauncher;
 
 #endif // PROCESSLAUNCHER_H
