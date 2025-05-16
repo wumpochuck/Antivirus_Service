@@ -17,7 +17,9 @@
 #define PATH_TO_CLIENT "C:/Antivirus/Antivirus_Client/antivirus/target/app/bin/app.bat"
 #define PATH_TO_CLIENT_DIR "C:/Antivirus/Antivirus_Client/antivirus/target"
 
-#define SERVER_IP "http://localhost:8080"
+#define PATH_TO_STARTER "C:/Antivirus/Antivirus_Service/service/build/Release/Starter.exe"
+
+#define SERVER_IP "http://192.168.1.3:8080"
 
 extern SERVICE_STATUS g_ServiceStatus;
 extern SERVICE_STATUS_HANDLE g_StatusHandle;

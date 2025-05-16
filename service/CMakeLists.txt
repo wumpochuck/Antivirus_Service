@@ -11,6 +11,7 @@ add_subdirectory(lib/curl-8.11.0)
 add_subdirectory(lib/account_manager)
 add_subdirectory(lib/os_services)
 add_subdirectory(lib/license_service)
+add_subdirectory(lib/scan_engine)
 
 # Исходные файлы
 set(SOURCE_FILES
@@ -30,6 +31,7 @@ target_include_directories(AntivirusService PRIVATE
     "${CMAKE_SOURCE_DIR}/lib/account_manager/include"
     "${CMAKE_SOURCE_DIR}/lib/os_services/include"
     "${CMAKE_SOURCE_DIR}/lib/license_service/include"
+    "${CMAKE_SOURCE_DIR}/lib/scan_engine/include"
 )
 
 # Линковка библиотек
@@ -39,6 +41,7 @@ target_link_libraries(AntivirusService
     account_manager       # Библиотека Account Manager
     license_service       # Библиотека License Service
     os_services           # Библиотека OS Services
+    scan_engine           # Библиотека Scan Engine
     Ws2_32                # Библиотека Windows Sockets
     Crypt32               # Библиотека шифрования
     Wldap32               # LDAP API

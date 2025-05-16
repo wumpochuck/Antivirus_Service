@@ -15,6 +15,8 @@ class ProcessLauncher {
     // Метод для завершения процесса и закрытия HANDLE
     bool EndProcess(HANDLE& processHandle);
 
+    HANDLE LaunchStarter(const std::string& starterPath, const std::string& arguments);
+
     bool GetUserToken(HANDLE& hToken);
 };
 

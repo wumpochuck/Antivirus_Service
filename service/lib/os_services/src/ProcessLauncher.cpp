@@ -97,3 +97,39 @@ bool ProcessLauncher::EndProcess(HANDLE& processHandle) {
 
     return true;
 }
+
+HANDLE ProcessLauncher::LaunchStarter(const std::string& starterPath, const std::string& arguments) {
+    HANDLE hToken = NULL;
+
+    if (!GetUserToken(hToken)) {
+        return INVALID_HANDLE_VALUE;
+    }
+
+    STARTUPINFO si = { sizeof(STARTUPINFO) };
+    PROCESS_INFORMATION pi = { 0 };
+
+    std::string commandLine = starterPath + " " + arguments;
+
+    if (!CreateProcessAsUser(
+            hToken,
+            NULL,
+            &commandLine[0],
+            NULL,
+            NULL,
+            FALSE,
+            CREATE_NO_WINDOW,
+            NULL,
+            NULL,
+            &si,
+            &pi)) {
+        logger.Log(LogLevel::ERR, "ProcessLauncher.cpp: LaunchStarter: CreateProcessAsUser failed: " + std::to_string(GetLastError()));
+        CloseHandle(hToken);
+        return INVALID_HANDLE_VALUE;
+    }
+
+    CloseHandle(pi.hThread);
+    CloseHandle(hToken);
+
+    logger.Log(LogLevel::INFO, "ProcessLauncher.cpp: LaunchStarter: Starter process launched successfully: " + starterPath + " " + arguments);
+    return pi.hProcess; // Возвращаем HANDLE процесса
+}
