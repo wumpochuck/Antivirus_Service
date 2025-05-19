@@ -13,6 +13,8 @@ add_subdirectory(lib/os_services)
 add_subdirectory(lib/license_service)
 add_subdirectory(lib/scan_engine)
 
+add_subdirectory(lib/av_bases)
+
 # Исходные файлы
 set(SOURCE_FILES
     "apps/antimalware_service_app/src/SvcInit.cpp"
@@ -32,6 +34,8 @@ target_include_directories(AntivirusService PRIVATE
     "${CMAKE_SOURCE_DIR}/lib/os_services/include"
     "${CMAKE_SOURCE_DIR}/lib/license_service/include"
     "${CMAKE_SOURCE_DIR}/lib/scan_engine/include"
+
+    "${CMAKE_SOURCE_DIR}/lib/av_bases/include"
 )
 
 # Линковка библиотек
@@ -39,6 +43,7 @@ target_link_libraries(AntivirusService
     Logger                # Библиотека Logger
     libcurl               # Библиотека cURL
     account_manager       # Библиотека Account Manager
+    av_bases              # Библиотека AV Bases
     license_service       # Библиотека License Service
     os_services           # Библиотека OS Services
     scan_engine           # Библиотека Scan Engine
