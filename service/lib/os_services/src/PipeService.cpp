@@ -6,7 +6,7 @@ PipeService::PipeService(const std::string& pipeName, Logger& logger)
 PipeService::~PipeService() {
     if (hPipe != INVALID_HANDLE_VALUE) {
         CloseHandle(hPipe);
-        logger.Log(LogLevel::INFO, "PipeService.cpp: Pipe handle closed.");
+        // logger.Log(LogLevel::INFO, "PipeService.cpp: Pipe handle closed.");
     }
 }
 
@@ -51,7 +51,7 @@ bool PipeService::Initialize() {
         return false;
     }
 
-    logger.Log(LogLevel::INFO, "PipeService.cpp: Named pipe created successfully.");
+    // logger.Log(LogLevel::INFO, "PipeService.cpp: Named pipe created successfully.");
     return true;
 }
 
@@ -62,7 +62,7 @@ bool PipeService::WaitForClient() {
         return false;
     }
 
-    logger.Log(LogLevel::INFO, "PipeService.cpp: Client connected to named pipe.");
+    // logger.Log(LogLevel::INFO, "PipeService.cpp: Client connected to named pipe.");
     return true;
 }
 

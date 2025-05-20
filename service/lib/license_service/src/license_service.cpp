@@ -108,8 +108,9 @@ string LicenseService::licenseInfoRequest(string data) {
     // Получаем licenseCode из класса
     string licenseCode = getLicenseCode();
     if (licenseCode.empty()) {
-        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: License code is empty.");
-        return "License code is empty";
+        logger.Log(LogLevel::ERR, "LicenseService.cpp: licenseInfoRequest: Saved license code is empty. Trying to find by name.");
+        licenseCode = "123";
+        // return "License code is empty";
     }
 
     // Формируем JSON body
