@@ -20,6 +20,7 @@ set(SOURCE_FILES
     "apps/antimalware_service_app/src/SvcInit.cpp"
     "apps/antimalware_service_app/src/SvcThread.cpp"
     # "apps/antimalware_service_app/src/PipeService.cpp"
+    "apps/antimalware_service_app/src/SessionMonitor.cpp"
 )
 
 # Исполняемый файл
@@ -50,6 +51,7 @@ target_link_libraries(AntivirusService
     Ws2_32                # Библиотека Windows Sockets
     Crypt32               # Библиотека шифрования
     Wldap32               # LDAP API
+    wtsapi32.lib          # Мемы
     Normaliz              # Unicode Normalization API
 )
 
