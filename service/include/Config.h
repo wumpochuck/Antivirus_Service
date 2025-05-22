@@ -11,6 +11,10 @@
 #include <tchar.h>
 #include <cstddef>
 
+#include <chrono>
+#include <thread>
+#include <ctime>
+
 #define LOG_FILE_PATH "C:/Antivirus/logs/antivirus_service.log"
 #define SERVICE_NAME _T("AntivirusService")
 #define PIPE_NAME _T("\\\\.\\pipe\\AntivirusServicePipe")
@@ -28,6 +32,5 @@ extern HANDLE g_ServiceStopEvent;
 extern HANDLE ClientHandle;
 // extern Logger logger; // Находится в Logger.h
 // extern AccountManager accountManager; // Находится в account_manager.h
-
 
 #endif  // CONFIG_H
