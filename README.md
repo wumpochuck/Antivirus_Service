@@ -1,21 +1,16 @@
-# AntivirusService
+<h1 align=center>С++ Antivirus Service</h1>
 
-## Описание директорий
+## Project Structure
 
-- **service/**
-  - **build/**: Директория для сборки проекта.
-  - **CMakeLists.txt**: Основной файл конфигурации CMake для проекта.
-  - **lib/**: Директория для внешних библиотек.
-    - **curl-8.11.0/**: Директория с библиотекой cURL.
-  - **src/**: Директория с исходными файлами проекта.
-    - **Antivirus_Service.cpp**: Основной файл исходного кода для сервиса антивируса.
-    - **Antivirus_Service.h**: Заголовочный файл для сервиса антивируса.
-    - **Logger.cpp**: Файл исходного кода для логирования.
-    - **Logger.h**: Заголовочный файл для логирования.
-    - **RequestHandler.cpp**: Файл исходного кода для обработки запросов.
-    - **RequestHandler.h**: Заголовочный файл для обработки запросов.
+- `service`
+  - `apps` 
+    - `antimalware_service_app` - Основная логика проекта
+    - `starter` - Стартер клиента
+  - `include` - Заголовочные файлы проекта
+  - `lib` - Статические библиотеки 
 
-## Инструкция по сборке
+
+## Getting Started
 
 1. Убедитесь, что у вас установлен CMake и Visual Studio.
 2. Откройте командную строку и перейдите в директорию `service`:
@@ -29,29 +24,26 @@
     ```
 4. Запустите CMake для генерации файлов сборки:
     ```sh
-    cmake -A Win32 ../
+    cmake ..
     ```
 5. Соберите проект с помощью Cmake:
    ```sh
-   cmake --build .
+   cmake --build . --configure Release
    ```
 Готовый проект будет собран в директории `build`
 
 
-## Настройки:
+## Settings:
 
-- В файле **RequestHandler.h** и **Antivirus_Service.h** требуется указать:
+- В файле `service/include.config.h` требуется указать:
 1) IP-адрес и PORT сервера
-2) PATH_TO_CLIENT
-3) WORKING_DIRECTORY
+2) Проверить корректность путей
 
 
 ## Запуск:
-- Установить службу: 
+- Установить службу ("start= auto" нужен для того чтобы служба запускалась при входе в систему: 
 ```powershell
 sc create AntivirusService binPath= "path/to/AntivirusService.exe" start= auto
-
-// "start= auto" нужен для того чтобы служба запускалась при входе в систему
 ```
 
 - Запустить службу:
@@ -63,4 +55,48 @@ sc start AntivirusService
 Остановить через диспетчер задач, затем:
 ```powershell
 sc delete AntivirusService
+
 ```
+
+## Technologies
+- CMake 
+- C/C++ 
+- libcurl 
+- Собственные библиотеки
+- Perl 
+- OpenSSL 
+- Zlib 
+- LDAP 
+- Windows специфичные библиотеки 
+- CPack 
+
+
+## Contributors
+
+<table>
+    <tbody>
+        <tr>
+            <td>
+                <img width=50 src="https://avatars.githubusercontent.com/u/130181963"/>
+            </td>
+            <td>
+                <a href = "t.me/wumpochuck"><b>wumpochuck</b></a>
+                <br>
+            </td>
+            <td>
+                <img width=50 src="https://avatars.githubusercontent.com/u/85567113?v=4"/>
+            </td>
+            <td>
+                <a href = "https://github.com/yokkochka"><b>yokkochka</b></a>
+                <br>
+            </td>
+            <td>
+                <img width=50 src="https://avatars.githubusercontent.com/u/153612706?v=4"/>
+            </td>
+            <td>
+                <a href = "https://github.com/Na-Nd"><b>Na-Nd</b></a>
+                <br>
+            </td>
+        </tr>
+    </tbody>
+</table>
